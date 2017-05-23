@@ -11,5 +11,7 @@ setup(
     license="MIT",
     keywords="Doom Deep Learning",
     packages=find_packages(exclude=["DeepDoom-DE"]),
+    package_data={'agent_config': ['agent_config.cfg'], 'deepdoomwad':['deepdoom.wad']},
+    include_package_data=True,
     install_requires = ["vizdoom", "keras", "tensorflow", "matplotlib", "tqdm", "keras-vis"],
 )
