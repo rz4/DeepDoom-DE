@@ -1,0 +1,9 @@
+{
+"actions" : [
+  "ATTACK",
+  "TURN_LEFT",
+  "TURN_RIGHT"],
+"depth_contrast" : 0.75,
+"nb_frames" : 3,
+"input_skips" : 4
+}
