@@ -102,7 +102,9 @@ class DoomAgent:
                 self.vizdoom.set_render_crosshair(False)
                 self.vizdoom.set_render_weapon(True)
                 self.vizdoom.set_render_particles(True)
+        blockPrint()
         self.vizdoom.init()
+        enablePrint()
 
     def get_state(self):
         '''
@@ -229,7 +231,7 @@ class DoomAgent:
                 t = np.array(training_data)
                 plt.plot(t[:,3], color='#e6e6e6'); plt.plot(t[:,2], color='#e6e6e6')
                 plt.fill_between(list(range(len(t[:,3]))), t[:,3],t[:,2],interpolate=True,color='#e6e6e6')
-                plt.plot(t[:,1], color='blue'); plt.title('Training: '+title, fontsize=16)
+                plt.plot(t[:,1], color='blue'); plt.title('Training: '+title, fontsize=12)
                 plt.ylabel('Average Reward Per Epoch'); plt.xlabel('Training Epochs')
                 plt.savefig(print_graph); plt.figure()
 
