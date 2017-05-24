@@ -3,7 +3,6 @@
 __author__ = 'Rafael Zamora, rz4@hood.edu'
 
 from setuptools import setup, find_packages
-import numpy as np
 
 setup(
     name="DeepDoom-DE",
@@ -13,7 +12,6 @@ setup(
     keywords="Doom Deep Reinforcement Learning",
     packages=find_packages(exclude=["agents","enviros","docker"]),
     package_data={'deepdoomde':['agent_config.cfg','deepdoom.wad']},
-    include_dirs = [np.get_include()],
     include_package_data=True,
-    install_requires = ["keras", "tensorflow", "matplotlib", "tqdm", "opencv-python", "keras-vis", "wget", "vizdoom"],
+    install_requires = ["numpy","keras", "tensorflow", "matplotlib", "tqdm", "opencv-python", "keras-vis", "wget", "vizdoom"],
 )
