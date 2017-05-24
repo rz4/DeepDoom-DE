@@ -1,0 +1,10 @@
+{
+  "actions" : [
+    "MOVE_FORWARD",
+    "MOVE_BACKWARD",
+    "TURN_LEFT",
+    "TURN_RIGHT"],
+  "depth_contrast" : 0.9,
+  "nb_frames" : 3,
+  "input_skips" : 4
+}
