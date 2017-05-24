@@ -15,5 +15,5 @@ setup(
     package_data={'deepdoomde':['agent_config.cfg','deepdoom.wad']},
     include_dirs = [np.get_include()],
     include_package_data=True,
-    install_requires = ["numpy","keras", "tensorflow", "matplotlib", "tqdm", "opencv-python", "keras-vis", "wget", "vizdoom"],
+    install_requires = ["keras", "tensorflow", "matplotlib", "tqdm", "opencv-python", "keras-vis", "wget", "vizdoom"],
 )
