@@ -104,7 +104,6 @@ class DoomAgent:
                 self.vizdoom.set_render_weapon(True)
                 self.vizdoom.set_render_particles(True)
 
-        #with suppress_stdout():
         self.vizdoom.init()
 
     def get_state(self):
@@ -368,10 +367,9 @@ class DoomAgent:
             if visualization:
                 s = self.agent_model.process_input(S)
                 q = self.agent_model.online_network.predict(s)
-                blockPrint()
-                heatmap = visualize_cam(self.agent_model.online_network, 6, [np.argmax(q[0])], s[0].transpose(1,2,0), alpha=0.0)
-                heatmap = np.dot(heatmap[...,:3], [0.299, 0.587, 0.114])
-                enablePrint()
+                with suppress_stdout():
+                    heatmap = visualize_cam(self.agent_model.online_network, 6, [np.argmax(q[0])], s[0].transpose(1,2,0), alpha=0.0)
+                    heatmap = np.dot(heatmap[...,:3], [0.299, 0.587, 0.114])
                 qs.append(softmax(q[0],1.0))
                 q_.append(q[0])
                 s_.append(s[0][-1])
@@ -623,7 +621,6 @@ class AgentModel:
 def blockPrint(): sys.stdout = open(os.devnull, 'w')
 
 def enablePrint(): sys.stdout = sys.__stdout__
-
 
 @contextmanager
 def suppress_stdout():

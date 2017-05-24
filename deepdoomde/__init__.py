@@ -6,7 +6,7 @@ Updated: 5/22/17
 
 '''
 import os, sys, getopt, wget
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 def run_console():

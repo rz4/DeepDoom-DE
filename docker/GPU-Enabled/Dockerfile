@@ -38,6 +38,7 @@ RUN apt-get install -y \
 # Python3
 RUN apt-get install -y python3-dev python3 python3-pip python3-tk
 RUN pip3 install pip --upgrade
+RUN pip3 install numpy
 
 # Enables X11 sharing and creates user home directory
 ENV USER_NAME DeepDoom-DE
