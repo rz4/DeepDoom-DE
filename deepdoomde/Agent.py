@@ -67,7 +67,7 @@ class DoomAgent:
         Method loads agent model defined within the configuration file.
 
         '''
-        self.agent_model = AgentModel(self.data_path, self.vizdoom, self.all_actions)
+        self.agent_model = AgentModel(self.vizdoom, self.all_actions)
         self.agent_model.load(config_file)
         self.input_size = self.agent_model.get_frames()
         if load_weights:
@@ -83,7 +83,7 @@ class DoomAgent:
         '''
         self.enviro_config = config_file
 
-    def load_enviro(self, render=False, doom_like=False):
+    def load_enviro(self, render=False, doom_like=False, total_tics=None):
         '''
         Method loads environment from set .cfg file.
 
@@ -92,6 +92,7 @@ class DoomAgent:
         self.vizdoom.load_config(self.module_path + "/agent_config.cfg")
         self.vizdoom.load_config(self.enviro_config)
         self.vizdoom.set_window_visible(False)
+        if total_tics: self.vizdoom.set_episode_timeout(total_tics)
         if render:
             self.vizdoom.set_screen_resolution(vzd.ScreenResolution.RES_800X600)
             self.vizdoom.set_window_visible(True)
@@ -120,7 +121,7 @@ class DoomAgent:
         S = np.expand_dims(self.input, 0)
         return S
 
-    def train(self, epochs, steps, memory_size, batch_size, gamma, target_update, nb_tests, overwrite=True, save_data=True):
+    def train(self, epochs, steps, memory_size, batch_size, gamma, target_update, nb_tests, alpha_decay=False, weight_file=None, print_graph=None):
         '''
         Method runs training session on agent model using Double Deep Q-Learning.
         Epsilon decays begins after the first 1/10 of epochs and reduces to 0.1
@@ -133,12 +134,13 @@ class DoomAgent:
 
         # Set Training Parameters
         epsilon = 1.0
+        alpha = 1.0
         memory = []
         training_data = []
         best_score = None
 
         # Training Loop
-        title = self.agent_model.config[:-4] + ' on ' + self.enviro_config
+        title = self.agent_model.config.split('/')[-1] + ' on ' + self.enviro_config.split('/')[-1]
         print("Training:", title)
         for epoch in range(epochs):
             self.load_enviro()
@@ -195,7 +197,7 @@ class DoomAgent:
                 delta[np.arange(batch_size_), a_] = 1
 
                 ## Get target Q-Values
-                targets = ((1 - delta) * Y[:batch_size_]) + ((1.0 * ((delta * (r_ + (gamma * (1 - game_over) * Qsa))) - (delta * Y[:batch_size_]))) + (delta * Y[:batch_size_]))
+                targets = ((1 - delta) * Y[:batch_size_]) + ((alpha * ((delta * (r_ + (gamma * (1 - game_over) * Qsa))) - (delta * Y[:batch_size_]))) + (delta * Y[:batch_size_]))
 
                 # Train Agent Model's Online Network
                 loss += float(self.agent_model.online_network.train_on_batch(s_, targets))
@@ -218,17 +220,24 @@ class DoomAgent:
             pbar = tqdm(total=nb_tests)
             total_rewards = []
             for i in range(nb_tests):
-                total_reward = self.test(self)
+                total_reward = self.test()
                 total_rewards.append(total_reward)
                 pbar.update(1)
             total_rewards = np.array(total_rewards)
             training_data.append([loss, np.mean(total_rewards), np.max(total_rewards), np.min(total_rewards)])
-            if save_data: np.savetxt(self.data_path + "results/" + title[:-4].replace(' ', '_') + ".csv", np.array(training_data))
+            if print_graph:
+                t = np.array(training_data)
+                plt.plot(t[:,3], color='#e6e6e6'); plt.plot(t[:,2], color='#e6e6e6')
+                plt.fill_between(list(range(len(t[:,3]))), t[:,3],t[:,2],interpolate=True,color='#e6e6e6')
+                plt.plot(t[:,1], color='blue'); plt.title('Training: '+title, fontsize=16)
+                plt.ylabel('Average Reward Per Epoch'); plt.xlabel('Training Epochs')
+                plt.savefig(print_graph); plt.figure()
 
             # Save Best Weights
             total_reward_avg = training_data[-1][1]
             if best_score is None or (best_score is not None and total_reward_avg > best_score):
-                if overwrite: self.agent_model.save_weights(self.agent_model.config[:-4] + ".h5")
+                if weight_file: self.agent_model.save_weights(weight_file)
+                else: self.agent_model.save_weights(self.agent_model.config[:-4] + ".h5")
                 best_score = total_reward_avg
 
             # Print Epoch Summary
@@ -236,7 +245,9 @@ class DoomAgent:
             epoch + 1, epochs, loss, epsilon, total_reward_avg))
 
             # Decay Epsilon
-            if epsilon > 0.1 and epochs > 1 and epoch+1 >= int(epochs/10): epsilon -= 0.9 / int((epochs/10) * 8)
+            if epsilon > 0.1 and epochs > 1 and epoch >= int(epochs/10):
+                epsilon -= 0.9 / int((epochs/10) * 8)
+                if alpha_decay: alpha -= 0.9 / int((epochs/10) * 8)
 
         print("Training Finished.\nBest Average Reward:", best_score)
 
@@ -304,7 +315,7 @@ class DoomAgent:
             pbar = tqdm(total=20)
             total_rewards = []
             for i in range(20):
-                total_reward, last_reward = self.test(self)
+                total_reward, last_reward = self.test()
                 total_rewards.append(total_reward)
                 pbar.update(1)
             total_rewards = np.array(total_rewards)
@@ -323,7 +334,7 @@ class DoomAgent:
 
         print("Training Finished.\nBest Average Reward:", best_score)
 
-    def test(self, save_replay=None, verbose=False, visualization=False):
+    def test(self, save_replay=None, verbose=False, visualization=False, timeout=None):
         '''
         Method runs a test of VizDoom instance.
 
@@ -331,7 +342,7 @@ class DoomAgent:
         self.input = None
 
         # Initiate Vizdoom instance
-        self.load_enviro()
+        self.load_enviro(total_tics=timeout)
         if save_replay: self.vizdoom.new_episode(save_replay)
         else: self.vizdoom.new_episode()
 
@@ -430,39 +441,14 @@ class DoomAgent:
             self.vizdoom.advance_action()
         self.vizdoom.close()
 
-    def compete(self, host=False, nb_bots=10):
-        '''
-        '''
-        self.input = None
-
-        if host:
-            self.set_enviro("vizdoom_comp_offline.cfg")
-            self.load_enviro()
-            self.vizdoom.close()
-            self.vizdoom.set_window_visible(True)
-            self.vizdoom.init()
-            for i in range(nb_bots):
-                self.vizdoom.send_game_command("addbot")
-        else:
-            self.vizdoom.load_config(self.data_path + "enviros/agent_config.cfg")
-            self.vizdoom.set_window_visible(False)
-            self.vizdoom.init()
-
-        while not self.vizdoom.is_episode_finished():
-            if self.vizdoom.is_player_dead(): self.vizdoom.respawn_player()
-            S = self.get_state()
-            self.agent_model.make_action(self.vizdoom, S)
-        self.vizdoom.close()
-
 class AgentModel:
     """
     """
 
-    def __init__(self, data_path, vizdoom, all_actions):
+    def __init__(self, vizdoom, all_actions):
         '''
         '''
         # Model Parameters
-        self.data_path = data_path
         self.vizdoom = vizdoom
         self.all_actions = [str(i) for i in all_actions]
         self.av_actions = []
@@ -499,7 +485,7 @@ class AgentModel:
         self.actions = []
         for act in self.av_actions:
             if act.endswith('.agt'):
-                sub_agent = AgentModel(self.data_path, self.vizdoom, self.all_actions)
+                sub_agent = AgentModel(self.vizdoom, self.all_actions)
                 sub_agent.load(act)
                 self.sub_agents.append(sub_agent)
 

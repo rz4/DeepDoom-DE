@@ -52,11 +52,11 @@ class Console(Cmd):
         weights = None
 
         # Get Options
-        opts, argss = getopt.getopt(args.split(), "uw:", ['untrained', 'weights='])
+        opts, argss = getopt.getopt(args.split()[1:], "uw:", ['untrained', 'weights='])
         for opt, arg in opts:
             if opt in ('-u', '--untrained'): untrained = False
             elif opt in ('-w', '--weights'): weights = arg
-        argss = argss[0]
+        argss = args.split()[0]
 
         # Find Agent File
         if os.path.isfile(argss): fname = argss
@@ -65,7 +65,7 @@ class Console(Cmd):
         else: print("Error: Cannot Find Agent Config: ", argss); return
 
         # Load Agent
-        self.agent.load_agent(fname, load_weights=not untrained, weight_file=weights)
+        self.agent.load_agent(fname, load_weights=untrained, weight_file=weights)
         self.log.append("loadagent " + args)
 
     def complete_loadagent(self, text, line, begidx, endidx):
@@ -111,7 +111,9 @@ class Console(Cmd):
         \nOptions:
         \n-v,--visualize\t
         \n-f,--full_ui\tRenders full Doom UI instead of UI limited by agent.
-        \n-n,--nb_tests\t<number of tests on set Doom configuration>'''
+        \n-n,--nb_tests\t<number of tests on set Doom configuration>
+        \n-t,--text_only\tReplay does not run.
+        \n-s,--nb_steps\t<number of steps before timeout>'''
 
         # Check for Agent and Enviro
         flag = False
@@ -124,21 +126,25 @@ class Console(Cmd):
         full_ui = False
         replay = None
         text_only = False
+        timeout = None
 
         # Get Options
-        opts, argss = getopt.getopt(args.split(), "vtfn:r:", ['visualize', 'text_only','full_ui', 'nb_tests=', 'replay:'])
+        opts, argss = getopt.getopt(args.split(), "vtfn:r:s:", ['visualize', 'text_only','full_ui', 'nb_tests=', 'replay:', 'nb_steps='])
         for opt, arg in opts:
             if opt in ('-n', '--nb_tests'): nb_tests = int(arg)
             elif opt in ('-v', '--visualize'): visualize = True
             elif opt in ('-f', '--full_ui'): full_ui = True
             elif opt in ('-r', '--replay'): replay = arg
             elif opt in ('-t', '--text_only'): text_only = True
+            elif opt in ('-s', '--nb_steps'): timeout = int(arg)
 
         # Run Test
         for i in range(nb_tests):
             if not replay: replay = self.agent.data_path + "test.lmp"
-            self.agent.test(save_replay=replay, verbose=True, visualization=visualize)
-            if not text_only: self.agent.replay(replay, doom_like=full_ui)
+            self.agent.test(save_replay=replay, verbose=True, visualization=visualize, timeout=timeout)
+            if not text_only:
+                try: self.agent.replay(replay, doom_like=full_ui)
+                except: pass
         self.log.append("test " + args)
 
     def do_replay(self, args):
@@ -194,10 +200,13 @@ class Console(Cmd):
         gamma = 0.9
         target_update = 100
         nb_tests = 50
+        print_graph = None
+        weight_file = None
+        alpha_decay = False
 
         # Get Options
-        opts, argss = getopt.getopt(args.split(), "s:e:t:m:b:", ['nb_steps=', 'nb_epochs=',
-        'nb_tests=', 'batch_size=', 'memory_size='])
+        opts, argss = getopt.getopt(args.split(), "as:e:t:m:b:w:p:", ['nb_steps=', 'nb_epochs=',
+        'nb_tests=', 'batch_size=', 'memory_size=', "alpha_decay", "weight_file=", "print_graph="])
         for opt, arg in opts:
             if opt in ('-s', '--nb_steps'):
                 steps = int(arg)
@@ -209,9 +218,18 @@ class Console(Cmd):
                 memory_size = int(arg)
             elif opt in ('-b', '--batch_size'):
                 batch_size = int(arg)
+            elif opt in ('-w', '--weight_file'):
+                if not arg.endswith('.h5'): arg += '.h5'
+                weight_file = arg
+            elif opt in ('-p', '--print_graph'):
+                if not arg.endswith('.png'): arg += '.png'
+                print_graph = arg
+            elif opt in ('-a', '--alpha_decay'):
+                alpha_decay = True
 
         # Train Agent
-        self.agent.train(epochs, steps, memory_size, batch_size, gamma, target_update, nb_tests)
+        self.agent.train(epochs, steps, memory_size, batch_size, gamma, target_update, nb_tests,
+                        alpha_decay=alpha_decay, print_graph=print_graph, weight_file=weight_file)
         self.log.append("train " + args)
 
     def do_exportscript(self, args):
