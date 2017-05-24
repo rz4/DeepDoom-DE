@@ -62,4 +62,5 @@ RUN pip3 install tensorflow-gpu
 USER ${USER_NAME}
 WORKDIR ${HOME_DIR}
 
+CMD pax11publish -r; pulseaudio --start
 CMD python3 -m deepdoomde; 'bash'
