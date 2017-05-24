@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # Build DeepDoom-DE Docker
-sudo docker build -t deepdoode-gpu .
+sudo docker build -t deepdoomde-gpu .
