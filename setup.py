@@ -13,5 +13,5 @@ setup(
     packages=find_packages(exclude=["agents","enviros"]),
     package_data={'deepdoomde':['agent_config.cfg','deepdoom.wad']},
     include_package_data=True,
-    install_requires = ["vizdoom", "keras", "tensorflow", "matplotlib", "tqdm", "keras-vis"],
+    install_requires = ["vizdoom", "keras", "tensorflow", "matplotlib", "tqdm", "keras-vis", "wget"],
 )

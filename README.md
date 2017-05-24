@@ -1,5 +1,5 @@
 # DeepDoom Development Environment
-![Current Version](https://img.shields.io/badge/version-0.1.0-orange.svg)
+![Current Version](https://img.shields.io/badge/version-0.1.0-yellow.svg)
 
 Last Updated: **May 22, 2017**
 
