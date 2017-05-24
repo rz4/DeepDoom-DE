@@ -48,13 +48,13 @@ class Console(Cmd):
         \n-u,--untrained\tWeights will not be loaded.
         \n-w,--weights\t<weight file to be loaded>'''
 
-        untrained = False
+        untrained = True
         weights = None
 
         # Get Options
         opts, argss = getopt.getopt(args.split(), "uw:", ['untrained', 'weights='])
         for opt, arg in opts:
-            if opt in ('-u', '--untrained'): untrained = True
+            if opt in ('-u', '--untrained'): untrained = False
             elif opt in ('-w', '--weights'): weights = arg
         argss = argss[0]
 
