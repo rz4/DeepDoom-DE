@@ -32,10 +32,10 @@ class DoomAgent:
 
     """
 
-    def __init__(self, data_path='DeepDoom-DE/'):
+    def __init__(self):
         '''
         '''
-        self.data_path = data_path
+        self.data_path = os.path.expanduser('~') + '/.deepdoomde/'
         self.module_path = os.path.dirname(deepdoomde.__file__)
 
         # Initiate ViZDoom
@@ -62,7 +62,7 @@ class DoomAgent:
         print("Neural Network Architecture:")
         self.agent_model.online_network.summary()
 
-    def load_agent(self, config_file):
+    def load_agent(self, config_file, load_weights=True, weight_file=None):
         '''
         Method loads agent model defined within the configuration file.
 
@@ -70,6 +70,11 @@ class DoomAgent:
         self.agent_model = AgentModel(self.data_path, self.vizdoom, self.all_actions)
         self.agent_model.load(config_file)
         self.input_size = self.agent_model.get_frames()
+        if load_weights:
+            if weight_file: self.agent_model.load_weights(weight_file)
+            else:
+                if os.path.isfile(config_file[:-4]+'.h5'):
+                    self.agent_model.load_weights(config_file[:-4]+'.h5')
 
     def set_enviro(self, config_file):
         '''
@@ -85,7 +90,7 @@ class DoomAgent:
         '''
         self.vizdoom.set_doom_game_path(self.module_path + "/deepdoom.wad")
         self.vizdoom.load_config(self.module_path + "/agent_config.cfg")
-        self.vizdoom.load_config(self.data_path + "enviros/" + self.enviro_config)
+        self.vizdoom.load_config(self.enviro_config)
         self.vizdoom.set_window_visible(False)
         if render:
             self.vizdoom.set_screen_resolution(vzd.ScreenResolution.RES_800X600)
@@ -318,7 +323,7 @@ class DoomAgent:
 
         print("Training Finished.\nBest Average Reward:", best_score)
 
-    def test(self, save_replay=None, verbose=False, tool=False):
+    def test(self, save_replay=None, verbose=False, visualization=False):
         '''
         Method runs a test of VizDoom instance.
 
@@ -327,14 +332,15 @@ class DoomAgent:
 
         # Initiate Vizdoom instance
         self.load_enviro()
-        if save_replay: self.vizdoom.new_episode(self.data_path + "results/replays/" + str(save_replay))
+        if save_replay: self.vizdoom.new_episode(save_replay)
         else: self.vizdoom.new_episode()
 
         if verbose:
-            print("Running Test:", self.enviro_config)
+            title = self.agent_model.config.split('/')[-1] + ' on ' + self.enviro_config.split('/')[-1]
+            print("Running Test:", title)
             pbar = tqdm(total=self.vizdoom.get_episode_timeout())
 
-        if tool:
+        if visualization:
             qs = []
             q_ = []
             s_ = []
@@ -345,7 +351,7 @@ class DoomAgent:
         while not self.vizdoom.is_episode_finished():
             S = self.get_state()
             if verbose: i = int(self.vizdoom.get_state().tic)
-            if tool:
+            if visualization:
                 s = self.agent_model.process_input(S)
                 q = self.agent_model.online_network.predict(s)
                 blockPrint()
@@ -362,7 +368,7 @@ class DoomAgent:
                 if not self.vizdoom.is_episode_finished():
                     d = int(self.vizdoom.get_state().tic) - i
                 pbar.update(d)
-        if tool:
+        if visualization:
             plt.ion()
             fig = plt.figure(num=None, figsize=(16, 12), dpi=80, facecolor='w', edgecolor='k', tight_layout=True)
             qs_ = np.array(qs)
@@ -408,24 +414,20 @@ class DoomAgent:
         self.vizdoom.close()
         return score
 
-    def replay(self, filename, verbose=False, doom_like=False):
+    def replay(self, filename, doom_like=False):
         '''
         Method runs a replay of the simulations at 800 x 600 resolution.
 
         '''
-        print("\nRunning Replay:", filename)
+        print("Running Replay:", filename.split('/')[-1])
 
         # Initiate Replay
-        self.load_enviro(render=True)
-        self.vizdoom.replay_episode(self.data_path+"results/replays/"+filename)
+        self.load_enviro(render=True, doom_like=doom_like)
+        self.vizdoom.replay_episode(filename)
 
         # Run Replay
         while not self.vizdoom.is_episode_finished():
             self.vizdoom.advance_action()
-
-        # Print Score
-        score = self.vizdoom.get_total_reward()
-        if verbose: print("Total Score:", score)
         self.vizdoom.close()
 
     def compete(self, host=False, nb_bots=10):
@@ -490,7 +492,7 @@ class AgentModel:
 
         '''
         # Load Model Config Json
-        with open(self.data_path + "agents/" + config_file) as cfile: config = json.load(cfile)
+        with open(config_file) as cfile: config = json.load(cfile)
         self.config = config_file
         self.av_actions = config['actions']
         act_codes = [list(a) for a in it.product([0, 1], repeat=len(self.all_actions))]
@@ -538,10 +540,7 @@ class AgentModel:
         else: self.y0 = Dense(self.nb_actions + len(self.sub_agents))(m)
 
         self.online_network = Model(inputs=self.x0, outputs=self.y0)
-        try: self.load_weights(self.config[:-4] + '.h5')
-        except Exception as e:
-            print(e)
-            self.online_network.compile(optimizer=self.optimizer, loss=self.loss_fun)
+        self.online_network.compile(optimizer=self.optimizer, loss=self.loss_fun)
 
     def process_input(self, S):
         '''
@@ -557,8 +556,6 @@ class AgentModel:
                 processed_s = ((1 - self.depth_contrast) * s[0][i][0]) + (self.depth_contrast * s[0][i][1])
                 processed_s = (processed_s - np.amin(processed_s))/ (np.amax(processed_s) - np.amin(processed_s) + 0.000001)
                 processed_s = np.round(processed_s, 6)
-                #plt.imshow(processed_s, cmap="gray", interpolation="nearest")
-                #plt.show()
                 processed_S.append(processed_s)
         return np.expand_dims(processed_S, 0)
 
@@ -609,7 +606,7 @@ class AgentModel:
         Method displays agent configuration info.
 
         '''
-        print(str_+"Agent Config:", self.config)
+        print(str_+"Agent Config:", self.config.split('/')[-1])
         print(str_+"Depth Contrast:", self.depth_contrast)
         print(str_+"Nb of Frames:", self.nb_frames)
         print(str_+"Input Skips:", self.input_skips)
@@ -624,7 +621,7 @@ class AgentModel:
         Method loads DQN model weights from file.
 
         '''
-        self.online_network.load_weights(self.data_path + 'agents/' + filename)
+        self.online_network.load_weights(filename)
         self.online_network.compile(optimizer=self.optimizer, loss=self.loss_fun)
 
     def save_weights(self, filename):
@@ -632,16 +629,10 @@ class AgentModel:
         Method saves DQN model weights to file.s
 
         '''
-        self.online_network.save_weights(self.data_path + 'agents/' + filename, overwrite=True)
+        self.online_network.save_weights(filename, overwrite=True)
 
 def blockPrint(): sys.stdout = open(os.devnull, 'w')
 
 def enablePrint(): sys.stdout = sys.__stdout__
 
-def softmax(x, t):
-    '''
-    Method defines softmax function for numpy arrays.
-
-    '''
-    e_x = np.exp(x - np.max(x))/t
-    return e_x / e_x.sum(axis=0)
+def softmax(x, t): e_x = np.exp(x - np.max(x))/t; return e_x / e_x.sum(axis=0)
