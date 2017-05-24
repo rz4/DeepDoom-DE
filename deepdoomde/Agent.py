@@ -11,6 +11,7 @@ import deepdoomde
 import json, sys, os
 import vizdoom as vzd
 import itertools as it
+from contextlib import contextmanager
 import numpy as np
 from tqdm import tqdm
 from random import sample
@@ -102,9 +103,9 @@ class DoomAgent:
                 self.vizdoom.set_render_crosshair(False)
                 self.vizdoom.set_render_weapon(True)
                 self.vizdoom.set_render_particles(True)
-        blockPrint()
-        self.vizdoom.init()
-        enablePrint()
+
+        with suppress_stdout():
+            self.vizdoom.init()
 
     def get_state(self):
         '''
@@ -622,5 +623,16 @@ class AgentModel:
 def blockPrint(): sys.stdout = open(os.devnull, 'w')
 
 def enablePrint(): sys.stdout = sys.__stdout__
+
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+sys.stdout = old_stdout
 
 def softmax(x, t): e_x = np.exp(x - np.max(x))/t; return e_x / e_x.sum(axis=0)
