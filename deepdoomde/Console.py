@@ -247,6 +247,7 @@ class Console(Cmd):
     def do_exit(self, args):
         '''Command exits DeepDoom-DE.'''
         print("Exiting DeepDoom-DE...")
+        os.remove("_vizdoom.ini")
         raise SystemExit
 
     def help_tutorial(self):

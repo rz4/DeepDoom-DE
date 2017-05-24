@@ -44,7 +44,7 @@ def run_script(script_file):
         else: print("Error: Incorrect File Type: " + script_file)
     else: print("Error: Could Not Find Script: " + script_file)
 
-def main():
+def pull_assets():
     '''
     '''
     # Make DeepDoom-DE directory
@@ -54,8 +54,6 @@ def main():
         os.mkdir(os.path.expanduser('~') + '/.deepdoomde/agents')
     if not os.path.isdir(os.path.expanduser('~') + '/.deepdoomde/enviros'):
         os.mkdir(os.path.expanduser('~') + '/.deepdoomde/enviros')
-    if not os.path.isdir(os.path.expanduser('~') + '/.deepdoomde/enviros/wads'):
-        os.mkdir(os.path.expanduser('~') + '/.deepdoomde/enviros/wads')
 
     if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/agents/rigid_turner.agt'):
         wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/agents/rigid_turner.agt', out=os.path.expanduser('~') + '/.deepdoomde/agents/', bar=None)
@@ -77,18 +75,23 @@ def main():
         wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/all_skills.cfg', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
     if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/rigid_turning_validation.cfg'):
         wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/rigid_turning_validation.cfg', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/rigid_turning.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/rigid_turning.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/exit_finding.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/exit_finding.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/shooting.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/shooting.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/doors.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/doors.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/all_skills.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/all_skills.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
-    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/wads/rigid_turning_validation.wad'):
-        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/wads/rigid_turning_validation.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/wads/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/rigid_turning.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/rigid_turning.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/exit_finding.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/exit_finding.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/shooting.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/shooting.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/doors.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/doors.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/all_skills.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/all_skills.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+    if not os.path.exists(os.path.expanduser('~') + '/.deepdoomde/enviros/rigid_turning_validation.wad'):
+        wget.download('https://raw.githubusercontent.com/rz4/DeepDoom-DE/master/enviros/rigid_turning_validation.wad', out=os.path.expanduser('~') + '/.deepdoomde/enviros/', bar=None)
+
+def main():
+    '''
+    '''
+    pull_assets()
 
     argv = sys.argv[1:]
 

@@ -104,8 +104,8 @@ class DoomAgent:
                 self.vizdoom.set_render_weapon(True)
                 self.vizdoom.set_render_particles(True)
 
-        with suppress_stdout():
-            self.vizdoom.init()
+        #with suppress_stdout():
+        self.vizdoom.init()
 
     def get_state(self):
         '''
@@ -633,6 +633,6 @@ def suppress_stdout():
         try:
             yield
         finally:
-sys.stdout = old_stdout
+            sys.stdout = old_stdout
 
 def softmax(x, t): e_x = np.exp(x - np.max(x))/t; return e_x / e_x.sum(axis=0)
