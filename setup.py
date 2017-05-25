@@ -11,7 +11,7 @@ setup(
     description="Deep Reinforcement Learning Development Environment Powered By ViZDoom 1.1.1. and Keras 2.0",
     license="MIT",
     keywords="Doom Deep Reinforcement Learning",
-    packages=find_packages(exclude=["agents","enviros","docker"]),
+    packages=find_packages(where="src/", exclude=["agents","enviros","docker"]),
     package_data={'deepdoomde':['agent_config.cfg','deepdoom.wad']},
     include_dirs = [np.get_include()],
     include_package_data=True,
