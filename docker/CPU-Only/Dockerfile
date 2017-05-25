@@ -59,5 +59,8 @@ RUN pip3 install git+https://github.com/rz4/DeepDoom-DE
 USER ${USER_NAME}
 WORKDIR ${HOME_DIR}
 
+RUN echo 'PS1="\[$(tput bold)\]\[\033[38;5;10m\]\u@Docker\[$(tput sgr0)\]\[\033[38;5;15m\]:\[$(tput sgr0)\]\[\033[38;5;12m\]\W\[$(tput sgr0)\]\[\033[38;5;15m\]\\$\[$(tput sgr0)\]"' >> .bashrc
+CMD ["/bin/bash"]
+
 CMD pax11publish -r; pulseaudio --start
 CMD python3 -m deepdoomde; 'bash'

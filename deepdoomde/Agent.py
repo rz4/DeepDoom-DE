@@ -103,7 +103,7 @@ class DoomAgent:
                 self.vizdoom.set_render_crosshair(False)
                 self.vizdoom.set_render_weapon(True)
                 self.vizdoom.set_render_particles(True)
-
+        self.vizdoom.add_game_args("+vid_forcesurface 1 ")
         self.vizdoom.init()
 
     def get_state(self):
