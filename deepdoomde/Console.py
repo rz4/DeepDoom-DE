@@ -244,11 +244,6 @@ class Console(Cmd):
             for i in range(len(self.log)):
                 x = str(i+1) + " " + self.log[i] + '\n'; f.write(x)
 
-    def do_setgpus(self, args):
-        '''Command sets CUDA_VISIBLE_DEVICES.'''
-        try: os.environ['CUDA_VISIBLE_DEVICES'] = args
-        except: print("Error: Could Not Set GPUs.")
-
     def do_exit(self, args):
         '''Command exits DeepDoom-DE.'''
         print("Exiting DeepDoom-DE...")

@@ -42,6 +42,8 @@ def run_script(script_file):
                     i += 1
         else: print("Error: Incorrect File Type: " + script_file)
     else: print("Error: Could Not Find Script: " + script_file)
+    os.remove("_vizdoom.ini")
+    from keras import backend as K; K.clear_session()
 
 def pull_assets():
     '''
@@ -113,5 +115,3 @@ def main():
             elif opt in ('-s', '--script'):
                 # Run DeepDoom-DE Script
                 run_script(arg)
-
-    from keras import backend as K; K.clear_session()

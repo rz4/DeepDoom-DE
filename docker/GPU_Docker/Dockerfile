@@ -1,5 +1,7 @@
 FROM ubuntu:16.04
 
+FROM nvidia/cuda:8.0-cudnn5-devel
+
 # ViZdoom dependencies
 RUN apt-get update
 RUN apt-get install -y \
@@ -55,12 +57,16 @@ RUN export uid=${HOST_UID} gid=${HOST_GID} && \
     chown ${uid}:${gid} -R ${HOME_DIR}
 
 RUN pip3 install git+https://github.com/rz4/DeepDoom-DE
+RUN pip3 install tensorflow-gpu
 
 USER ${USER_NAME}
 WORKDIR ${HOME_DIR}
 
 RUN echo 'PS1="\[$(tput bold)\]\[\033[38;5;10m\]\u@Docker\[$(tput sgr0)\]\[\033[38;5;15m\]:\[$(tput sgr0)\]\[\033[38;5;12m\]\W\[$(tput sgr0)\]\[\033[38;5;15m\]\\$\[$(tput sgr0)\]"' >> .bashrc
-CMD ["/bin/bash"]
+RUN ["/bin/bash"]
 
-CMD pax11publish -r; pulseaudio --start
+RUN mkdir session
+WORKDIR ${HOME_DIR}/session
+
+RUN pax11publish -r; pulseaudio --start
 CMD python3 -m deepdoomde; 'bash'
