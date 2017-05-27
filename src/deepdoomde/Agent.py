@@ -20,6 +20,8 @@ K.set_image_data_format("channels_first")
 from keras.models import Model
 from keras.layers import *
 from keras.optimizers import RMSprop
+import matplotlib
+matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 from vis.visualization import visualize_cam
 
