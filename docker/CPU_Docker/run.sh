@@ -8,7 +8,7 @@ fi
 sudo docker volume create --name session
 sudo cp -a session/. /var/lib/docker/volumes/session/_data
 
-# Run DeepDoom-DE Docker using GPU
+# Run DeepDoom-DE Docker using CPU
 zero=0;
 if [ $# -eq 0 ]
 	then
